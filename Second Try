@@ -1,0 +1,1688 @@
+<!doctype html>
+<html lang="en">
+ <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Basketball Stats Tracker</title>
+  <script src="/_sdk/element_sdk.js"></script>
+  <style>
+        html, body {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: #f8fafc;
+            color: #1f2937;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 1.5rem;
+            min-height: 100%;
+        }
+        
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            padding: 1.5rem 2rem;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            border: 1px solid #e5e7eb;
+        }
+        
+        .header-content h1 {
+            font-size: 2rem;
+            font-weight: 800;
+            margin: 0 0 0.5rem 0;
+            color: #1f2937;
+        }
+        
+        .header-content .season {
+            font-size: 1rem;
+            color: #6b7280;
+            font-weight: 500;
+        }
+        
+        .profile-avatar {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 3px solid white;
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .profile-avatar:hover {
+            transform: scale(1.05);
+            box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4);
+        }
+        
+        .profile-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 50%;
+        }
+        
+        .profile-placeholder {
+            color: white;
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+        
+        .page {
+            display: none;
+        }
+        
+        .page.active {
+            display: block;
+            animation: fadeIn 0.3s ease-out;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        /* Home Page Styles */
+        .home-content {
+            text-align: center;
+            padding: 3rem 0;
+        }
+        
+        .welcome-section {
+            margin-bottom: 4rem;
+        }
+        
+        .welcome-section h2 {
+            font-size: 2.5rem;
+            font-weight: 800;
+            margin-bottom: 1rem;
+            color: #1f2937;
+        }
+        
+        .welcome-section p {
+            font-size: 1.25rem;
+            color: #6b7280;
+            max-width: 600px;
+            margin: 0 auto;
+            line-height: 1.6;
+        }
+        
+        .action-buttons {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .action-card {
+            background: white;
+            border-radius: 20px;
+            padding: 3rem 2rem;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+            border: 1px solid #e5e7eb;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .action-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #3b82f6, #1d4ed8);
+            transform: scaleX(0);
+            transition: transform 0.3s ease;
+        }
+        
+        .action-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.12);
+        }
+        
+        .action-card:hover::before {
+            transform: scaleX(1);
+        }
+        
+        .action-icon {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 1.5rem;
+            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 2rem;
+        }
+        
+        .action-card h3 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            color: #1f2937;
+        }
+        
+        .action-card p {
+            color: #6b7280;
+            line-height: 1.5;
+            margin: 0;
+        }
+        
+        /* Profile Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            padding: 1rem;
+        }
+        
+        .modal-overlay.active {
+            display: flex;
+        }
+        
+        .modal {
+            background: white;
+            border-radius: 20px;
+            padding: 2rem;
+            max-width: 500px;
+            width: 100%;
+            max-height: 90%;
+            overflow-y: auto;
+            position: relative;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25);
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        
+        .modal-header h2 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin: 0;
+            color: #1f2937;
+        }
+        
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #6b7280;
+            padding: 0.5rem;
+            border-radius: 8px;
+            transition: all 0.2s ease;
+        }
+        
+        .close-btn:hover {
+            background: #f3f4f6;
+            color: #1f2937;
+        }
+        
+        .profile-photo-section {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        
+        .profile-photo-large {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 4px solid #e5e7eb;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .profile-photo-large:hover {
+            transform: scale(1.05);
+            border-color: #3b82f6;
+        }
+        
+        .profile-photo-large img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 50%;
+        }
+        
+        .photo-placeholder {
+            color: white;
+            font-size: 2.5rem;
+            font-weight: 700;
+        }
+        
+        .photo-buttons {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        
+        .photo-btn {
+            padding: 0.5rem 1rem;
+            border: 1px solid #d1d5db;
+            background: white;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+        
+        .photo-btn:hover {
+            background: #f9fafb;
+            border-color: #3b82f6;
+        }
+        
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+        
+        .form-group label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: #374151;
+            font-size: 0.875rem;
+        }
+        
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            font-size: 0.875rem;
+            transition: all 0.2s ease;
+            background: white;
+        }
+        
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+        
+        .multi-select-container {
+            position: relative;
+        }
+        
+        .multi-select-display {
+            min-height: 2.5rem;
+            padding: 0.5rem;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            background: white;
+            cursor: pointer;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.25rem;
+            align-items: center;
+        }
+        
+        .multi-select-display:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+        
+        .tag {
+            background: #3b82f6;
+            color: white;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+        
+        .tag-remove {
+            background: none;
+            border: none;
+            color: white;
+            cursor: pointer;
+            font-size: 0.875rem;
+            padding: 0;
+            line-height: 1;
+        }
+        
+        .multi-select-dropdown {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            z-index: 100;
+            max-height: 200px;
+            overflow-y: auto;
+            display: none;
+        }
+        
+        .multi-select-dropdown.active {
+            display: block;
+        }
+        
+        .multi-select-option {
+            padding: 0.5rem;
+            cursor: pointer;
+            transition: background 0.2s ease;
+        }
+        
+        .multi-select-option:hover {
+            background: #f3f4f6;
+        }
+        
+        .multi-select-option.selected {
+            background: #eff6ff;
+            color: #3b82f6;
+        }
+        
+        .save-profile-btn {
+            width: 100%;
+            padding: 0.75rem;
+            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .save-profile-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+        }
+        
+        .save-profile-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        /* Stats Pages */
+        .stats-container {
+            background: white;
+            border-radius: 16px;
+            padding: 2rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            border: 1px solid #e5e7eb;
+        }
+        
+        .back-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            background: #f3f4f6;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            color: #374151;
+            text-decoration: none;
+            font-weight: 500;
+            margin-bottom: 1.5rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .back-btn:hover {
+            background: #e5e7eb;
+            color: #1f2937;
+        }
+        
+        .game-form {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        
+        .stat-card {
+            background: #f9fafb;
+            border: 1px solid #e5e7eb;
+            border-radius: 12px;
+            padding: 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .stat-info h3 {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: #6b7280;
+            margin: 0 0 0.5rem 0;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .stat-controls {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        
+        .stat-btn {
+            width: 36px;
+            height: 36px;
+            border: none;
+            border-radius: 50%;
+            font-size: 1.25rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .stat-btn.minus {
+            background: #fee2e2;
+            color: #dc2626;
+        }
+        
+        .stat-btn.minus:hover {
+            background: #fecaca;
+            transform: scale(1.1);
+        }
+        
+        .stat-btn.plus {
+            background: #dcfce7;
+            color: #16a34a;
+        }
+        
+        .stat-btn.plus:hover {
+            background: #bbf7d0;
+            transform: scale(1.1);
+        }
+        
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: #1f2937;
+            min-width: 40px;
+            text-align: center;
+        }
+        
+        .points-display {
+            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+            color: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        
+        .points-display h2 {
+            font-size: 3rem;
+            font-weight: 900;
+            margin: 0;
+        }
+        
+        .points-display p {
+            margin: 0.5rem 0 0 0;
+            opacity: 0.9;
+        }
+        
+        .save-game-btn {
+            width: 100%;
+            padding: 1rem;
+            background: linear-gradient(135deg, #16a34a, #15803d);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .save-game-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(22, 163, 74, 0.3);
+        }
+        
+        .save-game-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        /* View Stats Page */
+        .stats-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+        
+        .export-buttons {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+        
+        .export-btn {
+            padding: 0.5rem 1rem;
+            background: #3b82f6;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 0.875rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .export-btn:hover {
+            background: #2563eb;
+            transform: translateY(-1px);
+        }
+        
+        .stats-table {
+            overflow-x: auto;
+            border-radius: 8px;
+            border: 1px solid #e5e7eb;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.875rem;
+        }
+        
+        th, td {
+            padding: 0.75rem;
+            text-align: left;
+            border-bottom: 1px solid #f3f4f6;
+        }
+        
+        th {
+            background: #f9fafb;
+            font-weight: 600;
+            color: #374151;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 3rem;
+            color: #6b7280;
+        }
+        
+        .toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 1rem 1.5rem;
+            border-radius: 8px;
+            color: white;
+            font-weight: 500;
+            z-index: 1001;
+            animation: slideIn 0.3s ease-out;
+        }
+        
+        .toast.success {
+            background: #16a34a;
+        }
+        
+        .toast.error {
+            background: #dc2626;
+        }
+        
+        .team-jersey-item {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 0.75rem;
+            background: #f9fafb;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            margin-bottom: 0.5rem;
+        }
+        
+        .team-jersey-item:last-child {
+            margin-bottom: 0;
+        }
+        
+        .team-jersey-name {
+            flex: 1;
+            font-weight: 500;
+            color: #374151;
+        }
+        
+        .team-jersey-input {
+            width: 80px;
+            padding: 0.5rem;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            font-size: 0.875rem;
+            text-align: center;
+        }
+        
+        .team-jersey-input:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+        }
+        
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+            
+            .header {
+                flex-direction: column;
+                gap: 1rem;
+                text-align: center;
+            }
+            
+            .action-buttons {
+                grid-template-columns: 1fr;
+            }
+            
+            .game-form {
+                grid-template-columns: 1fr;
+            }
+            
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .stats-header {
+                flex-direction: column;
+                align-items: stretch;
+            }
+        }
+    </style>
+  <style>@view-transition { navigation: auto; }</style>
+  <script src="/_sdk/data_sdk.js" type="text/javascript"></script>
+  <script src="https://cdn.tailwindcss.com" type="text/javascript"></script>
+ </head>
+ <body>
+  <div class="container"><!-- Header -->
+   <header class="header">
+    <div class="header-content">
+     <h1 id="app-title">Basketball Stats Tracker</h1>
+     <div class="season" id="season-label">
+      2025-26 Season
+     </div>
+    </div>
+    <div class="profile-avatar" onclick="openProfileModal()">
+     <div class="profile-placeholder" id="avatar-placeholder">
+      ?
+     </div><img id="avatar-image" style="display: none;" alt="Profile">
+    </div>
+   </header><!-- Home Page -->
+   <div id="home-page" class="page active">
+    <div class="home-content">
+     <div class="welcome-section">
+      <h2>Track Your Basketball Journey</h2>
+      <p>Record your game stats, track your progress, and analyze your performance over time. Your complete basketball statistics dashboard.</p>
+     </div>
+     <div class="action-buttons">
+      <div class="action-card" onclick="showPage('add-stats')">
+       <div class="action-icon">
+        📊
+       </div>
+       <h3>Add Stats</h3>
+       <p>Record your game statistics including points, rebounds, assists, and more. Track your performance in real-time.</p>
+      </div>
+      <div class="action-card" onclick="showPage('view-stats')">
+       <div class="action-icon">
+        📈
+       </div>
+       <h3>View Stats</h3>
+       <p>Analyze your performance history, view season averages, and export your data for deeper analysis.</p>
+      </div>
+     </div>
+    </div>
+   </div><!-- Add Stats Page -->
+   <div id="add-stats-page" class="page">
+    <div class="stats-container"><button class="back-btn" onclick="showPage('home')"> ← Back to Home </button>
+     <h2 style="margin-top: 0; margin-bottom: 2rem; font-size: 1.5rem; font-weight: 700;">Record Game Stats</h2>
+     <form class="game-form" id="game-form">
+      <div class="form-group"><label for="game-date">Game Date</label> <input type="date" id="game-date" required>
+      </div>
+      <div class="form-group"><label for="opponent">Opponent</label> <input type="text" id="opponent" placeholder="vs Lakers" required>
+      </div>
+      <div class="form-group"><label for="game-team">Team</label> <select id="game-team" required> <option value="">Select Team</option> </select>
+      </div>
+      <div class="form-group"><label for="minutes-played">Minutes Played</label> <input type="number" id="minutes-played" min="0" max="48" placeholder="32">
+      </div>
+     </form>
+     <div class="points-display">
+      <h2 id="total-points">0</h2>
+      <p>Total Points</p>
+     </div>
+     <div class="stats-grid">
+      <div class="stat-card">
+       <div class="stat-info">
+        <h3>Field Goals Made</h3>
+       </div>
+       <div class="stat-controls"><button class="stat-btn minus" onclick="changeStat('field_goals_made', -1)">−</button>
+        <div class="stat-value" id="field_goals_made">
+         0
+        </div><button class="stat-btn plus" onclick="changeStat('field_goals_made', 1)">+</button>
+       </div>
+      </div>
+      <div class="stat-card">
+       <div class="stat-info">
+        <h3>Field Goals Attempted</h3>
+       </div>
+       <div class="stat-controls"><button class="stat-btn minus" onclick="changeStat('field_goals_attempted', -1)">−</button>
+        <div class="stat-value" id="field_goals_attempted">
+         0
+        </div><button class="stat-btn plus" onclick="changeStat('field_goals_attempted', 1)">+</button>
+       </div>
+      </div>
+      <div class="stat-card">
+       <div class="stat-info">
+        <h3>3-Pointers Made</h3>
+       </div>
+       <div class="stat-controls"><button class="stat-btn minus" onclick="changeStat('three_pointers_made', -1)">−</button>
+        <div class="stat-value" id="three_pointers_made">
+         0
+        </div><button class="stat-btn plus" onclick="changeStat('three_pointers_made', 1)">+</button>
+       </div>
+      </div>
+      <div class="stat-card">
+       <div class="stat-info">
+        <h3>3-Pointers Attempted</h3>
+       </div>
+       <div class="stat-controls"><button class="stat-btn minus" onclick="changeStat('three_pointers_attempted', -1)">−</button>
+        <div class="stat-value" id="three_pointers_attempted">
+         0
+        </div><button class="stat-btn plus" onclick="changeStat('three_pointers_attempted', 1)">+</button>
+       </div>
+      </div>
+      <div class="stat-card">
+       <div class="stat-info">
+        <h3>Free Throws Made</h3>
+       </div>
+       <div class="stat-controls"><button class="stat-btn minus" onclick="changeStat('free_throws_made', -1)">−</button>
+        <div class="stat-value" id="free_throws_made">
+         0
+        </div><button class="stat-btn plus" onclick="changeStat('free_throws_made', 1)">+</button>
+       </div>
+      </div>
+      <div class="stat-card">
+       <div class="stat-info">
+        <h3>Free Throws Attempted</h3>
+       </div>
+       <div class="stat-controls"><button class="stat-btn minus" onclick="changeStat('free_throws_attempted', -1)">−</button>
+        <div class="stat-value" id="free_throws_attempted">
+         0
+        </div><button class="stat-btn plus" onclick="changeStat('free_throws_attempted', 1)">+</button>
+       </div>
+      </div>
+      <div class="stat-card">
+       <div class="stat-info">
+        <h3>Rebounds</h3>
+       </div>
+       <div class="stat-controls"><button class="stat-btn minus" onclick="changeStat('rebounds', -1)">−</button>
+        <div class="stat-value" id="rebounds">
+         0
+        </div><button class="stat-btn plus" onclick="changeStat('rebounds', 1)">+</button>
+       </div>
+      </div>
+      <div class="stat-card">
+       <div class="stat-info">
+        <h3>Assists</h3>
+       </div>
+       <div class="stat-controls"><button class="stat-btn minus" onclick="changeStat('assists', -1)">−</button>
+        <div class="stat-value" id="assists">
+         0
+        </div><button class="stat-btn plus" onclick="changeStat('assists', 1)">+</button>
+       </div>
+      </div>
+      <div class="stat-card">
+       <div class="stat-info">
+        <h3>Steals</h3>
+       </div>
+       <div class="stat-controls"><button class="stat-btn minus" onclick="changeStat('steals', -1)">−</button>
+        <div class="stat-value" id="steals">
+         0
+        </div><button class="stat-btn plus" onclick="changeStat('steals', 1)">+</button>
+       </div>
+      </div>
+      <div class="stat-card">
+       <div class="stat-info">
+        <h3>Blocks</h3>
+       </div>
+       <div class="stat-controls"><button class="stat-btn minus" onclick="changeStat('blocks', -1)">−</button>
+        <div class="stat-value" id="blocks">
+         0
+        </div><button class="stat-btn plus" onclick="changeStat('blocks', 1)">+</button>
+       </div>
+      </div>
+      <div class="stat-card">
+       <div class="stat-info">
+        <h3>Turnovers</h3>
+       </div>
+       <div class="stat-controls"><button class="stat-btn minus" onclick="changeStat('turnovers', -1)">−</button>
+        <div class="stat-value" id="turnovers">
+         0
+        </div><button class="stat-btn plus" onclick="changeStat('turnovers', 1)">+</button>
+       </div>
+      </div>
+      <div class="stat-card">
+       <div class="stat-info">
+        <h3>Fouls</h3>
+       </div>
+       <div class="stat-controls"><button class="stat-btn minus" onclick="changeStat('fouls', -1)">−</button>
+        <div class="stat-value" id="fouls">
+         0
+        </div><button class="stat-btn plus" onclick="changeStat('fouls', 1)">+</button>
+       </div>
+      </div>
+     </div><button class="save-game-btn" onclick="saveGame()">Save Game Stats</button>
+    </div>
+   </div><!-- View Stats Page -->
+   <div id="view-stats-page" class="page">
+    <div class="stats-container"><button class="back-btn" onclick="showPage('home')"> ← Back to Home </button>
+     <div class="stats-header">
+      <h2 style="margin: 0; font-size: 1.5rem; font-weight: 700;">Your Statistics</h2>
+      <div class="export-buttons"><button class="export-btn" onclick="exportToJSON()">Export JSON</button> <button class="export-btn" onclick="exportToCSV()">Export CSV</button> <button class="export-btn" onclick="clearAllData()">Clear Data</button>
+      </div>
+     </div>
+     <div class="stats-table">
+      <table>
+       <thead>
+        <tr>
+         <th>Date</th>
+         <th>Team</th>
+         <th>Opponent</th>
+         <th>PTS</th>
+         <th>FG</th>
+         <th>FG%</th>
+         <th>3P</th>
+         <th>3P%</th>
+         <th>FT</th>
+         <th>FT%</th>
+         <th>REB</th>
+         <th>AST</th>
+         <th>STL</th>
+         <th>BLK</th>
+         <th>TO</th>
+         <th>MIN</th>
+        </tr>
+       </thead>
+       <tbody id="stats-tbody">
+        <tr class="empty-state">
+         <td colspan="16"><h3>No games recorded yet</h3><p>Add your first game stats to see them here</p></td>
+        </tr>
+       </tbody>
+      </table>
+     </div>
+    </div>
+   </div><!-- Profile Modal -->
+   <div class="modal-overlay" id="profile-modal">
+    <div class="modal">
+     <div class="modal-header">
+      <h2>Edit Profile</h2><button class="close-btn" onclick="closeProfileModal()">×</button>
+     </div>
+     <div class="profile-photo-section">
+      <div class="profile-photo-large" onclick="document.getElementById('photo-upload').click()">
+       <div class="photo-placeholder" id="modal-photo-placeholder">
+        📷
+       </div><img id="modal-photo-image" style="display: none;" alt="Profile">
+      </div>
+      <div class="photo-buttons"><input type="file" id="photo-upload" accept="image/*" style="display: none;"> <button class="photo-btn" onclick="document.getElementById('photo-upload').click()">Upload Photo</button> <button class="photo-btn" onclick="removePhoto()">Remove Photo</button>
+      </div>
+     </div>
+     <form id="profile-form">
+      <div class="form-group"><label for="player-name">Player Name</label> <input type="text" id="player-name" placeholder="Enter your name" required>
+      </div>
+      <div class="form-group"><label>Team Jersey Numbers</label>
+       <div id="team-jerseys-container">
+        <p style="color: #6b7280; font-size: 0.875rem; margin: 0;">Add teams first to set jersey numbers</p>
+       </div>
+      </div>
+      <div class="form-group"><label>Positions</label>
+       <div class="multi-select-container">
+        <div class="multi-select-display" id="positions-display" tabindex="0"><span style="color: #9ca3af; font-size: 0.875rem;">Select positions...</span>
+        </div>
+        <div class="multi-select-dropdown" id="positions-dropdown">
+         <div class="multi-select-option" data-value="PG">
+          Point Guard (PG)
+         </div>
+         <div class="multi-select-option" data-value="SG">
+          Shooting Guard (SG)
+         </div>
+         <div class="multi-select-option" data-value="SF">
+          Small Forward (SF)
+         </div>
+         <div class="multi-select-option" data-value="PF">
+          Power Forward (PF)
+         </div>
+         <div class="multi-select-option" data-value="C">
+          Center (C)
+         </div>
+        </div>
+       </div>
+      </div>
+      <div class="form-group"><label>Teams</label>
+       <div class="multi-select-container">
+        <div class="multi-select-display" id="teams-display" tabindex="0"><span style="color: #9ca3af; font-size: 0.875rem;">Add teams...</span>
+        </div>
+        <div class="multi-select-dropdown" id="teams-dropdown">
+         <div style="padding: 0.5rem;"><input type="text" id="new-team-input" placeholder="Add new team..." style="width: 100%; padding: 0.25rem; border: 1px solid #d1d5db; border-radius: 4px;">
+         </div>
+        </div>
+       </div>
+      </div><button type="submit" class="save-profile-btn">Save Profile</button>
+     </form>
+    </div>
+   </div>
+  </div>
+  <script>
+        // Global variables
+        let currentStats = [];
+        let currentGame = {};
+        let userProfile = {
+            name: '',
+            positions: [],
+            teams: [],
+            teamJerseys: {}, // Store jersey numbers per team
+            photo: null
+        };
+
+        const defaultConfig = {
+            app_title: "Basketball Stats Tracker",
+            season_label: "2025-26 Season"
+        };
+
+        // Initialize app
+        function initializeApp() {
+            loadUserProfile();
+            loadGameStats();
+            updateUI();
+            setTodaysDate();
+            
+            if (window.elementSdk) {
+                window.elementSdk.init({
+                    defaultConfig,
+                    onConfigChange,
+                    mapToCapabilities,
+                    mapToEditPanelValues
+                });
+            }
+        }
+
+        // Element SDK functions
+        async function onConfigChange(config) {
+            const appTitle = config.app_title || defaultConfig.app_title;
+            const seasonLabel = config.season_label || defaultConfig.season_label;
+
+            document.getElementById('app-title').textContent = appTitle;
+            document.getElementById('season-label').textContent = seasonLabel;
+        }
+
+        function mapToCapabilities(config) {
+            return {
+                recolorables: [],
+                borderables: [],
+                fontEditable: undefined,
+                fontSizeable: undefined
+            };
+        }
+
+        function mapToEditPanelValues(config) {
+            return new Map([
+                ["app_title", config.app_title || defaultConfig.app_title],
+                ["season_label", config.season_label || defaultConfig.season_label]
+            ]);
+        }
+
+        // Page navigation
+        function showPage(pageId) {
+            document.querySelectorAll('.page').forEach(page => page.classList.remove('active'));
+            document.getElementById(pageId + '-page').classList.add('active');
+            
+            if (pageId === 'add-stats') {
+                updateTeamSelect();
+                resetGameStats();
+            } else if (pageId === 'view-stats') {
+                renderStatsTable();
+            }
+        }
+
+        // Profile management
+        function loadUserProfile() {
+            try {
+                const saved = localStorage.getItem('basketball-profile');
+                if (saved) {
+                    userProfile = JSON.parse(saved);
+                }
+            } catch (error) {
+                console.error('Error loading profile:', error);
+            }
+        }
+
+        function saveUserProfile() {
+            try {
+                localStorage.setItem('basketball-profile', JSON.stringify(userProfile));
+            } catch (error) {
+                console.error('Error saving profile:', error);
+                showToast('Failed to save profile', 'error');
+            }
+        }
+
+        function updateUI() {
+            // Update avatar
+            const avatarPlaceholder = document.getElementById('avatar-placeholder');
+            const avatarImage = document.getElementById('avatar-image');
+            
+            if (userProfile.photo) {
+                avatarPlaceholder.style.display = 'none';
+                avatarImage.src = userProfile.photo;
+                avatarImage.style.display = 'block';
+            } else if (userProfile.name) {
+                avatarPlaceholder.textContent = userProfile.name.charAt(0).toUpperCase();
+                avatarImage.style.display = 'none';
+                avatarPlaceholder.style.display = 'flex';
+            } else {
+                avatarPlaceholder.textContent = '?';
+                avatarImage.style.display = 'none';
+                avatarPlaceholder.style.display = 'flex';
+            }
+        }
+
+        function openProfileModal() {
+            // Populate form with current profile data
+            document.getElementById('player-name').value = userProfile.name || '';
+            
+            // Update photo display
+            const modalPlaceholder = document.getElementById('modal-photo-placeholder');
+            const modalImage = document.getElementById('modal-photo-image');
+            
+            if (userProfile.photo) {
+                modalPlaceholder.style.display = 'none';
+                modalImage.src = userProfile.photo;
+                modalImage.style.display = 'block';
+            } else {
+                modalPlaceholder.style.display = 'flex';
+                modalImage.style.display = 'none';
+            }
+            
+            // Update multi-selects
+            updateMultiSelect('positions', userProfile.positions);
+            updateMultiSelect('teams', userProfile.teams);
+            
+            // Update team jerseys display
+            updateTeamJerseysDisplay();
+            
+            document.getElementById('profile-modal').classList.add('active');
+        }
+
+        function closeProfileModal() {
+            document.getElementById('profile-modal').classList.remove('active');
+        }
+
+        // Multi-select functionality
+        function initializeMultiSelects() {
+            // Positions multi-select
+            const positionsDisplay = document.getElementById('positions-display');
+            const positionsDropdown = document.getElementById('positions-dropdown');
+            
+            positionsDisplay.addEventListener('click', () => {
+                positionsDropdown.classList.toggle('active');
+            });
+            
+            positionsDropdown.addEventListener('click', (e) => {
+                if (e.target.classList.contains('multi-select-option')) {
+                    const value = e.target.dataset.value;
+                    toggleSelection('positions', value, e.target.textContent);
+                }
+            });
+            
+            // Teams multi-select
+            const teamsDisplay = document.getElementById('teams-display');
+            const teamsDropdown = document.getElementById('teams-dropdown');
+            const newTeamInput = document.getElementById('new-team-input');
+            
+            teamsDisplay.addEventListener('click', () => {
+                teamsDropdown.classList.toggle('active');
+            });
+            
+            newTeamInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    const teamName = e.target.value.trim();
+                    if (teamName && !userProfile.teams.includes(teamName)) {
+                        userProfile.teams.push(teamName);
+                        updateMultiSelect('teams', userProfile.teams);
+                        e.target.value = '';
+                    }
+                }
+            });
+            
+            // Close dropdowns when clicking outside
+            document.addEventListener('click', (e) => {
+                if (!e.target.closest('.multi-select-container')) {
+                    document.querySelectorAll('.multi-select-dropdown').forEach(dropdown => {
+                        dropdown.classList.remove('active');
+                    });
+                }
+            });
+        }
+
+        function toggleSelection(type, value, label) {
+            const array = userProfile[type];
+            const index = array.indexOf(value);
+            
+            if (index > -1) {
+                array.splice(index, 1);
+            } else {
+                array.push(value);
+            }
+            
+            updateMultiSelect(type, array);
+        }
+
+        function updateMultiSelect(type, values) {
+            const display = document.getElementById(type + '-display');
+            const dropdown = document.getElementById(type + '-dropdown');
+            
+            // Update display
+            if (values.length === 0) {
+                display.innerHTML = `<span style="color: #9ca3af; font-size: 0.875rem;">${type === 'positions' ? 'Select positions...' : 'Add teams...'}</span>`;
+            } else {
+                display.innerHTML = values.map(value => `
+                    <div class="tag">
+                        ${type === 'positions' ? getPositionLabel(value) : value}
+                        <button type="button" class="tag-remove" onclick="removeSelection('${type}', '${value}')">&times;</button>
+                    </div>
+                `).join('');
+            }
+            
+            // Update dropdown selections
+            if (type === 'positions') {
+                dropdown.querySelectorAll('.multi-select-option').forEach(option => {
+                    option.classList.toggle('selected', values.includes(option.dataset.value));
+                });
+            }
+            
+            // Update team jerseys when teams change
+            if (type === 'teams') {
+                updateTeamJerseysDisplay();
+            }
+        }
+        
+        function updateTeamJerseysDisplay() {
+            const container = document.getElementById('team-jerseys-container');
+            
+            if (userProfile.teams.length === 0) {
+                container.innerHTML = '<p style="color: #6b7280; font-size: 0.875rem; margin: 0;">Add teams first to set jersey numbers</p>';
+                return;
+            }
+            
+            container.innerHTML = userProfile.teams.map(team => `
+                <div class="team-jersey-item">
+                    <div class="team-jersey-name">${team}</div>
+                    <input 
+                        type="number" 
+                        class="team-jersey-input" 
+                        placeholder="#" 
+                        min="0" 
+                        max="99" 
+                        value="${userProfile.teamJerseys[team] || ''}"
+                        onchange="updateTeamJersey('${team}', this.value)"
+                    >
+                </div>
+            `).join('');
+        }
+        
+        function updateTeamJersey(team, jerseyNumber) {
+            if (jerseyNumber === '') {
+                delete userProfile.teamJerseys[team];
+            } else {
+                userProfile.teamJerseys[team] = parseInt(jerseyNumber);
+            }
+        }
+
+        function removeSelection(type, value) {
+            const index = userProfile[type].indexOf(value);
+            if (index > -1) {
+                userProfile[type].splice(index, 1);
+                
+                // Clean up jersey number when team is removed
+                if (type === 'teams' && userProfile.teamJerseys[value]) {
+                    delete userProfile.teamJerseys[value];
+                }
+                
+                updateMultiSelect(type, userProfile[type]);
+            }
+        }
+
+        function getPositionLabel(value) {
+            const labels = {
+                'PG': 'Point Guard',
+                'SG': 'Shooting Guard',
+                'SF': 'Small Forward',
+                'PF': 'Power Forward',
+                'C': 'Center'
+            };
+            return labels[value] || value;
+        }
+
+        // Photo handling
+        function handlePhotoUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            if (file.size > 5 * 1024 * 1024) {
+                showToast('Image must be less than 5MB', 'error');
+                return;
+            }
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                userProfile.photo = e.target.result;
+                
+                // Update modal display
+                const modalPlaceholder = document.getElementById('modal-photo-placeholder');
+                const modalImage = document.getElementById('modal-photo-image');
+                modalPlaceholder.style.display = 'none';
+                modalImage.src = userProfile.photo;
+                modalImage.style.display = 'block';
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function removePhoto() {
+            userProfile.photo = null;
+            
+            // Update modal display
+            const modalPlaceholder = document.getElementById('modal-photo-placeholder');
+            const modalImage = document.getElementById('modal-photo-image');
+            modalPlaceholder.style.display = 'flex';
+            modalImage.style.display = 'none';
+            modalImage.src = '';
+            
+            // Clear file input
+            document.getElementById('photo-upload').value = '';
+        }
+
+        // Game stats management
+        function loadGameStats() {
+            try {
+                const saved = localStorage.getItem('basketball-game-stats');
+                if (saved) {
+                    currentStats = JSON.parse(saved);
+                }
+            } catch (error) {
+                console.error('Error loading game stats:', error);
+            }
+        }
+
+        function saveGameStats() {
+            try {
+                localStorage.setItem('basketball-game-stats', JSON.stringify(currentStats));
+            } catch (error) {
+                console.error('Error saving game stats:', error);
+                showToast('Failed to save game stats', 'error');
+            }
+        }
+
+        function updateTeamSelect() {
+            const select = document.getElementById('game-team');
+            select.innerHTML = '<option value="">Select Team</option>';
+            
+            userProfile.teams.forEach(team => {
+                const option = document.createElement('option');
+                option.value = team;
+                option.textContent = team;
+                select.appendChild(option);
+            });
+        }
+
+        function resetGameStats() {
+            currentGame = {};
+            document.querySelectorAll('.stat-value').forEach(el => {
+                el.textContent = '0';
+            });
+            document.getElementById('total-points').textContent = '0';
+        }
+
+        function changeStat(statName, change) {
+            if (!currentGame[statName]) {
+                currentGame[statName] = 0;
+            }
+            
+            currentGame[statName] = Math.max(0, currentGame[statName] + change);
+            document.getElementById(statName).textContent = currentGame[statName];
+            
+            // Auto-update attempted stats when makes are increased
+            if (statName === 'field_goals_made' && change > 0) {
+                if (!currentGame['field_goals_attempted']) {
+                    currentGame['field_goals_attempted'] = 0;
+                }
+                currentGame['field_goals_attempted'] += change;
+                document.getElementById('field_goals_attempted').textContent = currentGame['field_goals_attempted'];
+            }
+            
+            if (statName === 'three_pointers_made' && change > 0) {
+                if (!currentGame['three_pointers_attempted']) {
+                    currentGame['three_pointers_attempted'] = 0;
+                }
+                currentGame['three_pointers_attempted'] += change;
+                document.getElementById('three_pointers_attempted').textContent = currentGame['three_pointers_attempted'];
+                
+                // 3-pointers also count as field goal attempts
+                if (!currentGame['field_goals_attempted']) {
+                    currentGame['field_goals_attempted'] = 0;
+                }
+                currentGame['field_goals_attempted'] += change;
+                document.getElementById('field_goals_attempted').textContent = currentGame['field_goals_attempted'];
+            }
+            
+            if (statName === 'free_throws_made' && change > 0) {
+                if (!currentGame['free_throws_attempted']) {
+                    currentGame['free_throws_attempted'] = 0;
+                }
+                currentGame['free_throws_attempted'] += change;
+                document.getElementById('free_throws_attempted').textContent = currentGame['free_throws_attempted'];
+            }
+            
+            calculatePoints();
+        }
+
+        function calculatePoints() {
+            const fieldGoalsMade = currentGame.field_goals_made || 0;
+            const threePointersMade = currentGame.three_pointers_made || 0;
+            const freeThrowsMade = currentGame.free_throws_made || 0;
+            
+            const twoPointersMade = Math.max(0, fieldGoalsMade - threePointersMade);
+            const totalPoints = (twoPointersMade * 2) + (threePointersMade * 3) + freeThrowsMade;
+            
+            currentGame.points = Math.max(0, totalPoints);
+            document.getElementById('total-points').textContent = currentGame.points;
+        }
+
+        function saveGame() {
+            const gameDate = document.getElementById('game-date').value;
+            const opponent = document.getElementById('opponent').value;
+            const team = document.getElementById('game-team').value;
+            const minutesPlayed = document.getElementById('minutes-played').value;
+            
+            if (!gameDate || !opponent || !team) {
+                showToast('Please fill in all required fields', 'error');
+                return;
+            }
+            
+            if (!userProfile.name) {
+                showToast('Please set up your profile first', 'error');
+                openProfileModal();
+                return;
+            }
+            
+            const gameData = {
+                id: Date.now().toString(),
+                date: gameDate,
+                opponent: opponent,
+                team: team,
+                player_name: userProfile.name,
+                jersey_number: userProfile.teamJerseys[team] || '',
+                minutes_played: parseInt(minutesPlayed) || 0,
+                points: currentGame.points || 0,
+                field_goals_made: currentGame.field_goals_made || 0,
+                field_goals_attempted: currentGame.field_goals_attempted || 0,
+                three_pointers_made: currentGame.three_pointers_made || 0,
+                three_pointers_attempted: currentGame.three_pointers_attempted || 0,
+                free_throws_made: currentGame.free_throws_made || 0,
+                free_throws_attempted: currentGame.free_throws_attempted || 0,
+                rebounds: currentGame.rebounds || 0,
+                assists: currentGame.assists || 0,
+                steals: currentGame.steals || 0,
+                blocks: currentGame.blocks || 0,
+                turnovers: currentGame.turnovers || 0,
+                fouls: currentGame.fouls || 0,
+                created_at: new Date().toISOString()
+            };
+            
+            currentStats.push(gameData);
+            saveGameStats();
+            showToast('Game stats saved successfully!', 'success');
+            resetGameStats();
+            document.getElementById('game-form').reset();
+            setTodaysDate();
+        }
+
+        // Stats viewing
+        function renderStatsTable() {
+            const tbody = document.getElementById('stats-tbody');
+            
+            if (currentStats.length === 0) {
+                tbody.innerHTML = `
+                    <tr class="empty-state">
+                        <td colspan="16">
+                            <h3>No games recorded yet</h3>
+                            <p>Add your first game stats to see them here</p>
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+            
+            tbody.innerHTML = currentStats.map(stat => `
+                <tr>
+                    <td>${new Date(stat.date).toLocaleDateString()}</td>
+                    <td>${stat.team}</td>
+                    <td>${stat.opponent}</td>
+                    <td><strong>${stat.points}</strong></td>
+                    <td>${stat.field_goals_made}/${stat.field_goals_attempted}</td>
+                    <td>${calculatePercentage(stat.field_goals_made, stat.field_goals_attempted)}%</td>
+                    <td>${stat.three_pointers_made}/${stat.three_pointers_attempted}</td>
+                    <td>${calculatePercentage(stat.three_pointers_made, stat.three_pointers_attempted)}%</td>
+                    <td>${stat.free_throws_made}/${stat.free_throws_attempted}</td>
+                    <td>${calculatePercentage(stat.free_throws_made, stat.free_throws_attempted)}%</td>
+                    <td>${stat.rebounds}</td>
+                    <td>${stat.assists}</td>
+                    <td>${stat.steals}</td>
+                    <td>${stat.blocks}</td>
+                    <td>${stat.turnovers}</td>
+                    <td>${stat.minutes_played}</td>
+                </tr>
+            `).join('');
+        }
+
+        function calculatePercentage(made, attempted) {
+            if (attempted === 0) return "0.0";
+            return ((made / attempted) * 100).toFixed(1);
+        }
+
+        // Export functions
+        function exportToJSON() {
+            if (currentStats.length === 0) {
+                showToast('No data to export', 'error');
+                return;
+            }
+            
+            const dataStr = JSON.stringify({
+                profile: userProfile,
+                stats: currentStats
+            }, null, 2);
+            
+            downloadFile(dataStr, 'basketball-stats.json', 'application/json');
+            showToast('JSON file downloaded!', 'success');
+        }
+
+        function exportToCSV() {
+            if (currentStats.length === 0) {
+                showToast('No data to export', 'error');
+                return;
+            }
+            
+            const headers = [
+                'Date', 'Team', 'Opponent', 'Player', 'Jersey', 'Points', 'FG Made', 'FG Attempted',
+                'FG%', '3P Made', '3P Attempted', '3P%', 'FT Made', 'FT Attempted', 'FT%',
+                'Rebounds', 'Assists', 'Steals', 'Blocks', 'Turnovers', 'Fouls', 'Minutes'
+            ];
+            
+            const csvContent = [
+                headers.join(','),
+                ...currentStats.map(stat => [
+                    stat.date,
+                    `"${stat.team}"`,
+                    `"${stat.opponent}"`,
+                    `"${stat.player_name}"`,
+                    stat.jersey_number,
+                    stat.points,
+                    stat.field_goals_made,
+                    stat.field_goals_attempted,
+                    calculatePercentage(stat.field_goals_made, stat.field_goals_attempted),
+                    stat.three_pointers_made,
+                    stat.three_pointers_attempted,
+                    calculatePercentage(stat.three_pointers_made, stat.three_pointers_attempted),
+                    stat.free_throws_made,
+                    stat.free_throws_attempted,
+                    calculatePercentage(stat.free_throws_made, stat.free_throws_attempted),
+                    stat.rebounds,
+                    stat.assists,
+                    stat.steals,
+                    stat.blocks,
+                    stat.turnovers,
+                    stat.fouls,
+                    stat.minutes_played
+                ].join(','))
+            ].join('\n');
+            
+            downloadFile(csvContent, 'basketball-stats.csv', 'text/csv');
+            showToast('CSV file downloaded!', 'success');
+        }
+
+        function downloadFile(content, filename, contentType) {
+            const blob = new Blob([content], { type: contentType });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = filename;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+        }
+
+        function clearAllData() {
+            const btn = event.target;
+            const originalText = btn.textContent;
+            
+            btn.textContent = 'Click Again to Confirm';
+            btn.style.background = '#dc2626';
+            
+            const resetButton = () => {
+                btn.textContent = originalText;
+                btn.style.background = '#3b82f6';
+                btn.onclick = clearAllData;
+            };
+            
+            setTimeout(resetButton, 3000);
+            
+            btn.onclick = () => {
+                localStorage.removeItem('basketball-game-stats');
+                currentStats = [];
+                renderStatsTable();
+                showToast('All data cleared!', 'success');
+                resetButton();
+            };
+        }
+
+        // Utility functions
+        function setTodaysDate() {
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('game-date').value = today;
+        }
+
+        function showToast(message, type) {
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.textContent = message;
+            document.body.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.remove();
+            }, 3000);
+        }
+
+        // Event listeners
+        document.getElementById('profile-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            userProfile.name = document.getElementById('player-name').value;
+            
+            saveUserProfile();
+            updateUI();
+            closeProfileModal();
+            showToast('Profile saved successfully!', 'success');
+        });
+
+        document.getElementById('photo-upload').addEventListener('change', handlePhotoUpload);
+
+        // Initialize everything when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeApp();
+            initializeMultiSelects();
+        });
+    </script>
+ <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'99662ce0a2cb5304',t:'MTc2MTc3NzYzMy4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
